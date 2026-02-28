@@ -1270,7 +1270,7 @@ function startMiss() {
   document.getElementById('missStatus').textContent = '';
   document.getElementById('missStatus').classList.remove('sent');
   missInterval = setInterval(() => {
-    const dur = ((Date.now() - missStart) / 1000).toFixed(1);
+    const dur = ((Date.now() - missStart) / 1000).toFixed(2);
     document.getElementById('missTimer').textContent = dur + 's';
     const pct = Math.min((Date.now() - missStart) / 10000 * 100, 100);
     missHeart.style.background = `linear-gradient(to top, rgba(180,128,228,${0.08 + pct/300}) ${pct}%, rgba(180,128,228,0.08) ${pct}%)`;
