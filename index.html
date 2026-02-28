@@ -1,0 +1,1908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>When You Miss Me</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --accent: #b480e4;
+  --accent-glow: rgba(180,128,228,0.4);
+  --accent-strong: rgba(180,128,228,0.7);
+  --glass-bg: rgba(255,255,255,0.04);
+  --glass-border: rgba(255,255,255,0.08);
+  --pink: #e88fc5;
+  --warm: #f5c6aa;
+  --gold: #f0d080;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'Inter', sans-serif;
+  background: #0a0012;
+  color: #e8d5f5;
+  overflow-x: hidden;
+  min-height: 100vh;
+  -webkit-tap-highlight-color: transparent;
+}
+h1,h2,h3,.serif { font-family: 'Playfair Display', Georgia, serif; }
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(180,130,220,0.3); border-radius:3px; }
+
+#starfield { position: fixed; top:0; left:0; width:100%; height:100%; z-index: 0; pointer-events: none; }
+
+.shooting-star {
+  position: fixed; width: 80px; height: 2px;
+  background: linear-gradient(90deg, rgba(180,128,228,0.8), transparent);
+  border-radius: 50%; z-index: 1; pointer-events: none;
+  animation: shoot 1s ease-out forwards;
+  box-shadow: 0 0 6px rgba(180,128,228,0.5);
+}
+@keyframes shoot {
+  0%   { transform: translateX(0) translateY(0) rotate(-30deg); opacity:1; }
+  100% { transform: translateX(300px) translateY(180px) rotate(-30deg); opacity:0; }
+}
+
+.cursor-heart {
+  position: fixed; pointer-events:none; z-index:9999;
+  font-size: 14px; opacity:1;
+  animation: cursorFloat 1.2s ease-out forwards;
+}
+@keyframes cursorFloat {
+  0%   { transform: translateY(0) scale(1); opacity:1; }
+  100% { transform: translateY(-40px) scale(0.3); opacity:0; }
+}
+
+.particle {
+  position: fixed; pointer-events:none; z-index:1;
+  opacity: 0.15; font-size: 18px;
+  animation: floatUp linear infinite;
+}
+@keyframes floatUp {
+  0%   { transform: translateY(100vh) rotate(0deg); opacity:0; }
+  10%  { opacity:0.15; }
+  90%  { opacity:0.15; }
+  100% { transform: translateY(-10vh) rotate(360deg); opacity:0; }
+}
+
+.screen { display: none; min-height: 100vh; position: relative; z-index: 2; }
+.screen.active { display: flex; }
+
+#passcode-screen {
+  flex-direction: column; align-items: center; justify-content: center;
+  gap: 30px; padding: 40px 20px;
+}
+.passcode-title { font-size: 1.1em; letter-spacing: 3px; text-transform: uppercase; color: rgba(232,213,245,0.5); }
+.passcode-subtitle { font-size: 0.85em; color: rgba(232,213,245,0.3); margin-top: -15px; font-style: italic; }
+.passcode-dots { display: flex; gap: 16px; }
+.passcode-dot {
+  width: 18px; height: 18px; border-radius: 50%;
+  border: 2px solid var(--accent); background: transparent; transition: all 0.3s;
+}
+.passcode-dot.filled { background: var(--accent); box-shadow: 0 0 12px var(--accent-glow); }
+.numpad { display: grid; grid-template-columns: repeat(3, 70px); gap: 12px; margin-top: 10px; }
+.numpad button {
+  width: 70px; height: 70px; border-radius: 50%;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg); color: #e8d5f5;
+  font-size: 1.4em; font-family: 'Inter', sans-serif;
+  cursor: pointer; transition: all 0.2s; backdrop-filter: blur(10px);
+}
+.numpad button:hover { background: rgba(180,128,228,0.12); border-color: var(--accent); transform: scale(1.08); }
+.numpad button:active { transform: scale(0.95); }
+.passcode-error { color: #e85a7a; font-size: 0.85em; opacity: 0; transition: opacity 0.3s; height: 20px; }
+.passcode-error.show { opacity: 1; }
+.passcode-hint { font-size: 0.75em; color: rgba(232,213,245,0.25); margin-top: 10px; font-style: italic; }
+
+#intro-screen {
+  flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; padding: 40px 30px; gap: 20px;
+}
+.intro-text {
+  font-family: 'Playfair Display', serif; font-size: 1.6em; line-height: 1.8;
+  opacity: 0; animation: fadeInSlow 2s ease forwards; color: rgba(232,213,245,0.8);
+}
+.intro-text span { display: block; margin-bottom: 8px; }
+@keyframes fadeInSlow {
+  0%   { opacity:0; transform: translateY(15px); }
+  100% { opacity:1; transform: translateY(0); }
+}
+.enter-btn {
+  margin-top: 30px; padding: 18px 50px; border: none; border-radius: 50px;
+  background: linear-gradient(135deg, var(--accent), var(--pink));
+  color: white; font-family: 'Playfair Display', serif; font-size: 1.2em;
+  cursor: pointer; opacity: 0; animation: fadeInSlow 2s ease 1.5s forwards;
+  box-shadow: 0 0 40px var(--accent-glow); transition: all 0.3s; letter-spacing: 0.5px;
+}
+.enter-btn:hover { transform: scale(1.05); box-shadow: 0 0 60px var(--accent-glow); }
+.enter-btn:active { transform: scale(0.97); }
+
+#main-portal { flex-direction: column; align-items: center; padding: 40px 20px 100px; gap: 0; }
+.portal-header { text-align: center; margin-bottom: 40px; animation: fadeInSlow 1s ease forwards; }
+.portal-header h1 {
+  font-size: 2em;
+  background: linear-gradient(135deg, var(--accent), var(--pink), var(--warm));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.portal-header p { color: rgba(232,213,245,0.4); margin-top: 8px; font-style: italic; }
+
+.portal-section {
+  width: 100%; max-width: 500px; margin-bottom: 50px;
+  opacity: 0; animation: fadeInSlow 0.8s ease forwards;
+}
+.section-title {
+  font-size: 1.4em; margin-bottom: 8px;
+  background: linear-gradient(135deg, var(--accent), var(--pink));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  cursor: pointer; user-select: none;
+}
+.section-subtitle { font-size: 0.85em; color: rgba(232,213,245,0.35); margin-bottom: 20px; font-style: italic; }
+
+/* MISS ME BUTTON */
+.miss-container { display: flex; flex-direction: column; align-items: center; gap: 15px; }
+.miss-heart {
+  width: 140px; height: 140px; border-radius: 50%;
+  background: rgba(180,128,228,0.08); border: 2px solid rgba(180,128,228,0.2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 60px; cursor: pointer; position: relative; overflow: hidden;
+  transition: all 0.3s; user-select: none; -webkit-user-select: none;
+}
+.miss-heart:hover { border-color: var(--accent); box-shadow: 0 0 30px var(--accent-glow); }
+.miss-timer { font-size: 2em; font-family: 'Playfair Display', serif; color: var(--accent); opacity: 0.5; min-height: 40px; }
+.miss-msg-input {
+  width: 100%; max-width: 350px; padding: 12px 18px; border-radius: 20px;
+  border: 1px solid var(--glass-border); background: var(--glass-bg); color: #e8d5f5;
+  font-family: 'Inter', sans-serif; font-size: 0.9em; outline: none; text-align: center;
+  backdrop-filter: blur(10px);
+}
+.miss-msg-input::placeholder { color: rgba(232,213,245,0.25); }
+.miss-msg-input:focus { border-color: var(--accent); }
+.miss-status { font-style: italic; color: rgba(232,213,245,0.4); min-height: 24px; font-size: 0.9em; transition: all 0.3s; }
+.miss-status.sent { color: var(--pink); }
+
+.heart-burst {
+  position: fixed; pointer-events: none; z-index: 9999; font-size: 20px;
+  animation: burstOut 1s ease-out forwards;
+}
+@keyframes burstOut {
+  0%   { transform: translate(0,0) scale(1); opacity:1; }
+  100% { transform: translate(var(--tx), var(--ty)) scale(0.3); opacity:0; }
+}
+
+/* ENVELOPES */
+.envelope-grid { display: grid; gap: 12px; }
+.envelope {
+  padding: 18px 22px; border-radius: 16px; border: 1px solid var(--glass-border);
+  background: var(--glass-bg); cursor: pointer; transition: all 0.4s; backdrop-filter: blur(10px);
+}
+.envelope:hover { border-color: rgba(180,128,228,0.25); background: rgba(180,128,228,0.06); transform: translateY(-2px); }
+.envelope-label { font-size: 0.95em; display: flex; align-items: center; gap: 10px; }
+.envelope-content {
+  max-height: 0; overflow: hidden; transition: max-height 0.5s ease, padding 0.5s ease;
+  font-size: 0.88em; line-height: 1.7; color: rgba(232,213,245,0.7); padding: 0 5px;
+}
+.envelope.open .envelope-content { max-height: 600px; padding-top: 14px; }
+.envelope.open { border-color: var(--accent); box-shadow: 0 0 20px rgba(180,128,228,0.1); }
+
+/* TIMELINE */
+.timeline { position: relative; padding-left: 30px; }
+.timeline::before {
+  content: ''; position: absolute; left: 8px; top: 0; bottom: 0;
+  width: 2px; background: linear-gradient(to bottom, var(--accent), transparent);
+}
+.timeline-item { margin-bottom: 35px; opacity: 0; transform: translateX(-20px); transition: all 0.6s ease; }
+.timeline-item.visible { opacity: 1; transform: translateX(0); }
+.timeline-dot {
+  width: 14px; height: 14px; border-radius: 50%; background: var(--accent);
+  position: absolute; left: 2px; box-shadow: 0 0 10px var(--accent-glow);
+}
+.timeline-caption { font-size: 0.9em; color: rgba(232,213,245,0.5); margin-bottom: 10px; font-style: italic; }
+.timeline-photo {
+  width: 100%; aspect-ratio: 4/3; border-radius: 14px; overflow: hidden;
+  border: 1px solid var(--glass-border); background: rgba(180,128,228,0.04);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; position: relative; transition: all 0.5s;
+}
+.timeline-photo img { width: 100%; height: 100%; object-fit: cover; filter: blur(15px); transition: filter 0.8s ease; }
+.timeline-photo.revealed img { filter: blur(0); }
+.timeline-photo .placeholder-text { position: absolute; color: rgba(232,213,245,0.3); font-style: italic; pointer-events: none; transition: opacity 0.5s; }
+.timeline-photo.revealed .placeholder-text { opacity: 0; }
+
+/* HEARTBEAT SYNC */
+.heartbeat-container { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+.heartbeat-visual { font-size: 80px; transition: transform 0.1s; }
+.heartbeat-visual.beating { animation: heartPulse 0.83s ease infinite; }
+@keyframes heartPulse {
+  0%   { transform: scale(1); }
+  15%  { transform: scale(1.25); }
+  30%  { transform: scale(1); }
+  45%  { transform: scale(1.15); }
+  60%  { transform: scale(1); }
+}
+.sync-btn {
+  padding: 14px 35px; border-radius: 50px; border: 1px solid var(--accent);
+  background: rgba(180,128,228,0.08); color: var(--accent);
+  font-family: 'Playfair Display', serif; font-size: 1em; cursor: pointer; transition: all 0.3s;
+}
+.sync-btn:hover { background: rgba(180,128,228,0.15); transform: scale(1.05); }
+.heartbeat-text {
+  text-align: center; font-style: italic; color: rgba(232,213,245,0.4);
+  min-height: 50px; line-height: 1.6; transition: all 0.5s;
+}
+
+/* DISTANCE COUNTER */
+.distance-card {
+  text-align: center; padding: 30px; border-radius: 20px;
+  border: 1px solid var(--glass-border); background: var(--glass-bg); backdrop-filter: blur(10px);
+}
+.distance-number {
+  font-size: 3.5em; font-family: 'Playfair Display', serif;
+  background: linear-gradient(135deg, var(--accent), var(--pink));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1.2;
+}
+.distance-label { color: rgba(232,213,245,0.4); font-style: italic; margin-top: 5px; }
+.distance-detail { display: flex; justify-content: center; gap: 30px; margin-top: 20px; }
+.distance-detail div { text-align: center; }
+.distance-detail .num { font-size: 1.8em; font-family: 'Playfair Display', serif; color: var(--accent); }
+.distance-detail .lbl { font-size: 0.75em; color: rgba(232,213,245,0.3); text-transform: uppercase; letter-spacing: 1px; }
+
+/* DAILY LOVE DROP */
+.love-drop-card {
+  padding: 25px; border-radius: 20px; border: 1px solid var(--glass-border);
+  background: var(--glass-bg); backdrop-filter: blur(10px); text-align: center;
+}
+.love-drop-day { font-size: 0.8em; text-transform: uppercase; letter-spacing: 2px; color: var(--accent); margin-bottom: 12px; }
+.love-drop-msg { font-size: 0.95em; line-height: 1.8; color: rgba(232,213,245,0.7); }
+
+/* LOVE LETTER */
+.letter-card {
+  padding: 25px; border-radius: 20px; border: 1px solid var(--glass-border);
+  background: var(--glass-bg); backdrop-filter: blur(10px); text-align: center;
+}
+.letter-textarea {
+  width: 100%; min-height: 120px; padding: 16px; border-radius: 14px;
+  border: 1px solid var(--glass-border); background: rgba(255,255,255,0.02); color: #e8d5f5;
+  font-family: 'Playfair Display', serif; font-size: 0.95em; line-height: 1.7;
+  outline: none; resize: vertical; margin: 15px 0;
+}
+.letter-textarea::placeholder { color: rgba(232,213,245,0.2); font-style: italic; }
+.letter-textarea:focus { border-color: var(--accent); }
+.letter-send-btn {
+  padding: 12px 35px; border-radius: 50px; border: 1px solid var(--pink);
+  background: rgba(232,143,197,0.08); color: var(--pink);
+  font-family: 'Playfair Display', serif; font-size: 0.95em; cursor: pointer; transition: all 0.3s;
+}
+.letter-send-btn:hover { background: rgba(232,143,197,0.15); transform: scale(1.05); }
+.letter-status { font-style: italic; color: rgba(232,213,245,0.4); margin-top: 12px; min-height: 20px; font-size: 0.85em; }
+
+/* VIRTUAL HUG */
+.hug-btn {
+  display: block; margin: 0 auto; padding: 16px 45px; border-radius: 50px;
+  border: 1px solid var(--warm); background: rgba(245,198,170,0.06);
+  color: var(--warm); font-family: 'Playfair Display', serif;
+  font-size: 1.05em; cursor: pointer; transition: all 0.3s;
+}
+.hug-btn:hover { background: rgba(245,198,170,0.12); transform: scale(1.05); }
+.hug-overlay {
+  position: fixed; inset: 0; z-index: 9998;
+  background: radial-gradient(circle, rgba(245,198,170,0.15), transparent 70%);
+  pointer-events: none; opacity: 0; transition: opacity 0.8s;
+}
+.hug-overlay.active { opacity: 1; }
+.hug-text {
+  position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  z-index: 9999; font-family: 'Playfair Display', serif; font-size: 1.8em;
+  color: var(--warm); pointer-events: none; opacity: 0; transition: opacity 0.8s;
+  text-align: center; text-shadow: 0 0 30px rgba(245,198,170,0.4);
+}
+.hug-text.active { opacity: 1; }
+
+/* GOOD NIGHT KISS */
+.kiss-btn {
+  display: block; margin: 10px auto 0; padding: 14px 40px; border-radius: 50px;
+  border: 1px solid var(--pink); background: rgba(232,143,197,0.06);
+  color: var(--pink); font-family: 'Playfair Display', serif;
+  font-size: 1em; cursor: pointer; transition: all 0.3s;
+}
+.kiss-btn:hover { background: rgba(232,143,197,0.12); transform: scale(1.05); }
+
+/* LOVE ROULETTE */
+.roulette-card {
+  padding: 25px; border-radius: 20px; border: 1px solid var(--glass-border);
+  background: var(--glass-bg); backdrop-filter: blur(10px); text-align: center;
+}
+.roulette-display {
+  font-family: 'Playfair Display', serif; font-size: 1.1em; line-height: 1.7;
+  color: rgba(232,213,245,0.7); min-height: 60px; padding: 15px; margin: 15px 0;
+  border-radius: 14px; border: 1px solid var(--glass-border);
+  background: rgba(180,128,228,0.03); transition: all 0.3s;
+}
+.roulette-display.spinning { animation: roulettePulse 0.15s ease infinite; }
+@keyframes roulettePulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+.roulette-btn {
+  padding: 14px 40px; border-radius: 50px; border: 1px solid var(--accent);
+  background: linear-gradient(135deg, rgba(180,128,228,0.1), rgba(232,143,197,0.1));
+  color: var(--accent); font-family: 'Playfair Display', serif;
+  font-size: 1em; cursor: pointer; transition: all 0.3s;
+}
+.roulette-btn:hover { transform: scale(1.05); box-shadow: 0 0 20px var(--accent-glow); }
+.roulette-btn:active { transform: scale(0.95); }
+
+/* DREAM MODE */
+.dream-overlay {
+  position: fixed; inset: 0; z-index: 9997;
+  background: radial-gradient(ellipse at center, rgba(20,5,50,0.97), rgba(10,0,18,0.99));
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 30px; opacity: 0; pointer-events: none; transition: opacity 1s ease;
+}
+.dream-overlay.active { opacity: 1; pointer-events: all; }
+.dream-text {
+  font-family: 'Playfair Display', serif; font-size: 1.5em; text-align: center;
+  color: rgba(232,213,245,0.6); line-height: 2; padding: 0 30px;
+  animation: dreamBreath 4s ease infinite;
+}
+@keyframes dreamBreath { 0%, 100% { opacity: 0.6; transform: scale(1); } 50% { opacity: 1; transform: scale(1.02); } }
+.dream-orb {
+  width: 120px; height: 120px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(180,128,228,0.3), rgba(232,143,197,0.1), transparent);
+  box-shadow: 0 0 60px rgba(180,128,228,0.2), 0 0 120px rgba(232,143,197,0.1);
+  animation: orbFloat 6s ease infinite;
+}
+@keyframes orbFloat { 0%, 100% { transform: translateY(0) scale(1); } 33% { transform: translateY(-15px) scale(1.05); } 66% { transform: translateY(10px) scale(0.97); } }
+.dream-close { font-size: 0.8em; color: rgba(232,213,245,0.2); cursor: pointer; font-style: italic; transition: color 0.3s; }
+.dream-close:hover { color: rgba(232,213,245,0.5); }
+.dream-btn {
+  display: block; margin: 10px auto 0; padding: 14px 40px; border-radius: 50px;
+  border: 1px solid rgba(100,80,200,0.4); background: rgba(100,80,200,0.06);
+  color: rgba(160,130,230,0.9); font-family: 'Playfair Display', serif;
+  font-size: 1em; cursor: pointer; transition: all 0.3s;
+}
+.dream-btn:hover { background: rgba(100,80,200,0.12); transform: scale(1.05); }
+
+/* REASONS I LOVE YOU */
+.reasons-card {
+  padding: 25px; border-radius: 20px; border: 1px solid var(--glass-border);
+  background: var(--glass-bg); backdrop-filter: blur(10px); text-align: center;
+}
+.reason-display {
+  font-family: 'Playfair Display', serif; font-size: 1.15em; line-height: 1.8;
+  color: rgba(232,213,245,0.8); min-height: 50px; padding: 20px 10px; transition: all 0.5s;
+}
+.reason-counter { font-size: 0.75em; color: rgba(232,213,245,0.25); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; }
+.reason-btn {
+  padding: 12px 35px; border-radius: 50px; border: 1px solid var(--pink);
+  background: rgba(232,143,197,0.08); color: var(--pink);
+  font-family: 'Playfair Display', serif; font-size: 0.95em; cursor: pointer; transition: all 0.3s;
+}
+.reason-btn:hover { background: rgba(232,143,197,0.15); transform: scale(1.05); }
+
+/* ═══════════════════════════════════════
+   NEW FEATURE 1: OUR FUTURE 🔮
+   ═══════════════════════════════════════ */
+.crystal-card {
+  padding: 30px; border-radius: 20px; border: 1px solid var(--glass-border);
+  background: var(--glass-bg); backdrop-filter: blur(10px); text-align: center;
+}
+.crystal-ball {
+  width: 140px; height: 140px; border-radius: 50%; margin: 0 auto 20px;
+  background: radial-gradient(circle at 35% 35%, rgba(180,128,228,0.2), rgba(100,60,180,0.1), rgba(10,0,20,0.3));
+  border: 2px solid rgba(180,128,228,0.2);
+  box-shadow: 0 0 40px rgba(180,128,228,0.15), inset 0 0 30px rgba(180,128,228,0.1);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 50px; cursor: pointer; transition: all 0.5s;
+  animation: crystalGlow 3s ease infinite;
+}
+@keyframes crystalGlow {
+  0%, 100% { box-shadow: 0 0 40px rgba(180,128,228,0.15), inset 0 0 30px rgba(180,128,228,0.1); }
+  50% { box-shadow: 0 0 60px rgba(180,128,228,0.3), inset 0 0 50px rgba(180,128,228,0.2); }
+}
+.crystal-ball:hover { transform: scale(1.08); border-color: var(--accent); }
+.crystal-vision {
+  font-family: 'Playfair Display', serif; font-size: 1em; line-height: 1.8;
+  color: rgba(232,213,245,0.7); min-height: 60px; padding: 15px;
+  border-radius: 14px; border: 1px solid var(--glass-border);
+  background: rgba(180,128,228,0.03); transition: all 0.5s;
+}
+.crystal-vision.revealing { animation: crystalReveal 0.6s ease; }
+@keyframes crystalReveal {
+  0% { opacity: 0; transform: scale(0.95); filter: blur(5px); }
+  100% { opacity: 1; transform: scale(1); filter: blur(0); }
+}
+
+/* ═══════════════════════════════════════
+   NEW FEATURE 2: TRUTH OR DARE 🎭
+   ═══════════════════════════════════════ */
+.tod-card {
+  padding: 25px; border-radius: 20px; border: 1px solid var(--glass-border);
+  background: var(--glass-bg); backdrop-filter: blur(10px); text-align: center;
+}
+.tod-display {
+  font-family: 'Playfair Display', serif; font-size: 1.05em; line-height: 1.8;
+  color: rgba(232,213,245,0.7); min-height: 60px; padding: 15px; margin: 15px 0;
+  border-radius: 14px; border: 1px solid var(--glass-border);
+  background: rgba(180,128,228,0.03); transition: all 0.3s;
+}
+.tod-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.tod-btn {
+  padding: 12px 30px; border-radius: 50px; font-family: 'Playfair Display', serif;
+  font-size: 0.95em; cursor: pointer; transition: all 0.3s;
+}
+.tod-truth { border: 1px solid var(--accent); background: rgba(180,128,228,0.08); color: var(--accent); }
+.tod-dare { border: 1px solid var(--pink); background: rgba(232,143,197,0.08); color: var(--pink); }
+.tod-truth:hover { background: rgba(180,128,228,0.15); transform: scale(1.05); }
+.tod-dare:hover { background: rgba(232,143,197,0.15); transform: scale(1.05); }
+
+/* ═══════════════════════════════════════
+   NEW FEATURE 3: WHEN I GET HOME 🏠
+   ═══════════════════════════════════════ */
+.home-card {
+  padding: 25px; border-radius: 20px; border: 1px solid var(--glass-border);
+  background: var(--glass-bg); backdrop-filter: blur(10px);
+}
+.home-promise {
+  padding: 14px 18px; border-radius: 14px; margin-bottom: 10px;
+  border: 1px solid var(--glass-border); background: rgba(180,128,228,0.03);
+  display: flex; align-items: center; gap: 12px;
+  font-size: 0.92em; line-height: 1.6; color: rgba(232,213,245,0.7);
+  transition: all 0.3s; cursor: default;
+}
+.home-promise:hover { border-color: rgba(180,128,228,0.2); background: rgba(180,128,228,0.06); transform: translateX(5px); }
+.home-promise .emoji { font-size: 1.4em; flex-shrink: 0; }
+
+/* ═══════════════════════════════════════
+   NEW FEATURE 4: CONSTELLATION ✨
+   ═══════════════════════════════════════ */
+.constellation-card {
+  padding: 25px; border-radius: 20px; border: 1px solid var(--glass-border);
+  background: var(--glass-bg); backdrop-filter: blur(10px); text-align: center;
+}
+#constellationCanvas {
+  width: 100%; height: 300px; border-radius: 14px;
+  border: 1px solid var(--glass-border); background: rgba(5,0,15,0.8);
+  cursor: crosshair; touch-action: none;
+}
+.constellation-controls { display: flex; gap: 10px; justify-content: center; margin-top: 12px; flex-wrap: wrap; }
+.constellation-btn {
+  padding: 10px 25px; border-radius: 50px; font-size: 0.85em; cursor: pointer; transition: all 0.3s;
+  border: 1px solid var(--glass-border); background: var(--glass-bg); color: #e8d5f5;
+  font-family: 'Inter', sans-serif;
+}
+.constellation-btn:hover { border-color: var(--accent); transform: scale(1.05); }
+.constellation-name {
+  margin-top: 10px; font-family: 'Playfair Display', serif; font-size: 1.1em;
+  color: var(--accent); font-style: italic; min-height: 30px;
+}
+.constellation-input {
+  width: 80%; max-width: 300px; margin: 10px auto 0; display: block;
+  padding: 10px 16px; border-radius: 20px; text-align: center;
+  border: 1px solid var(--glass-border); background: var(--glass-bg); color: #e8d5f5;
+  font-family: 'Playfair Display', serif; font-size: 0.95em; outline: none;
+}
+.constellation-input::placeholder { color: rgba(232,213,245,0.25); font-style: italic; }
+.constellation-input:focus { border-color: var(--accent); }
+
+/* ═══════════════════════════════════════
+   NEW FEATURE 5: MOOD RING 🎪
+   ═══════════════════════════════════════ */
+.mood-card {
+  padding: 25px; border-radius: 20px; border: 1px solid var(--glass-border);
+  background: var(--glass-bg); backdrop-filter: blur(10px); text-align: center;
+}
+.mood-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 15px 0; }
+.mood-option {
+  padding: 14px 8px; border-radius: 14px; border: 1px solid var(--glass-border);
+  background: var(--glass-bg); cursor: pointer; transition: all 0.3s;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+}
+.mood-option:hover { border-color: var(--accent); transform: translateY(-3px); }
+.mood-option.selected { border-color: var(--accent); background: rgba(180,128,228,0.1); box-shadow: 0 0 15px var(--accent-glow); }
+.mood-emoji { font-size: 2em; }
+.mood-label { font-size: 0.7em; color: rgba(232,213,245,0.4); }
+.mood-status { font-style: italic; color: rgba(232,213,245,0.4); min-height: 24px; font-size: 0.85em; margin-top: 10px; }
+.mood-send-btn {
+  padding: 12px 35px; border-radius: 50px; border: 1px solid var(--accent);
+  background: rgba(180,128,228,0.08); color: var(--accent);
+  font-family: 'Playfair Display', serif; font-size: 0.95em; cursor: pointer; transition: all 0.3s;
+}
+.mood-send-btn:hover { background: rgba(180,128,228,0.15); transform: scale(1.05); }
+
+
+/* ═══════════════════════════════════════
+   NEW FEATURE 7: WHEN I GET YOU ALONE 🔥
+   ═══════════════════════════════════════ */
+.spicy-card {
+  padding: 25px; border-radius: 20px; border: 1px solid rgba(255,100,100,0.15);
+  background: linear-gradient(135deg, rgba(255,60,60,0.04), rgba(180,128,228,0.04));
+  backdrop-filter: blur(10px); text-align: center;
+}
+.spicy-reveal-btn {
+  padding: 14px 40px; border-radius: 50px;
+  border: 1px solid rgba(255,120,120,0.4);
+  background: linear-gradient(135deg, rgba(255,80,80,0.08), rgba(232,143,197,0.08));
+  color: #ff8a8a; font-family: 'Playfair Display', serif;
+  font-size: 1em; cursor: pointer; transition: all 0.3s;
+  animation: spicyPulse 2.5s ease infinite;
+}
+@keyframes spicyPulse {
+  0%, 100% { box-shadow: 0 0 15px rgba(255,100,100,0.1); }
+  50% { box-shadow: 0 0 30px rgba(255,100,100,0.25); }
+}
+.spicy-reveal-btn:hover { transform: scale(1.06); box-shadow: 0 0 35px rgba(255,100,100,0.3); }
+.spicy-message {
+  font-family: 'Playfair Display', serif; font-size: 1.05em; line-height: 1.9;
+  color: rgba(255,180,180,0.85); min-height: 60px; padding: 20px 10px;
+  margin: 15px 0; border-radius: 14px;
+  border: 1px solid rgba(255,100,100,0.1);
+  background: rgba(255,50,50,0.03); transition: all 0.5s;
+}
+.spicy-message.revealing {
+  animation: spicyReveal 0.6s ease;
+}
+@keyframes spicyReveal {
+  0% { opacity: 0; transform: scale(0.95); filter: blur(4px); }
+  100% { opacity: 1; transform: scale(1); filter: blur(0); }
+}
+.spicy-counter {
+  font-size: 0.75em; color: rgba(255,150,150,0.3); letter-spacing: 2px;
+  text-transform: uppercase; margin-bottom: 10px;
+}
+.spicy-warning {
+  font-size: 0.75em; color: rgba(255,150,150,0.25); font-style: italic; margin-top: 10px;
+}
+
+/* ═══════════════════════════════════════
+   NEW FEATURE 6: THE GRAND FINALE 💍
+   ═══════════════════════════════════════ */
+.finale-btn {
+  display: block; margin: 0 auto; padding: 18px 50px; border-radius: 50px;
+  border: 2px solid var(--gold); background: rgba(240,208,128,0.06);
+  color: var(--gold); font-family: 'Playfair Display', serif;
+  font-size: 1.1em; cursor: pointer; transition: all 0.3s;
+  box-shadow: 0 0 20px rgba(240,208,128,0.1);
+  animation: finaleGlow 2s ease infinite;
+}
+@keyframes finaleGlow {
+  0%, 100% { box-shadow: 0 0 20px rgba(240,208,128,0.1); }
+  50% { box-shadow: 0 0 40px rgba(240,208,128,0.25); }
+}
+.finale-btn:hover { transform: scale(1.08); box-shadow: 0 0 50px rgba(240,208,128,0.3); }
+
+.finale-overlay {
+  position: fixed; inset: 0; z-index: 10001;
+  background: #000; opacity: 0; pointer-events: none;
+  transition: opacity 1.5s ease;
+  display: flex; flex-direction: column; align-items: center;
+  overflow-y: auto; padding: 60px 0 40px;
+}
+.finale-overlay.active { opacity: 1; pointer-events: all; }
+.finale-text-container {
+  text-align: center; padding: 0 30px; max-width: 600px;
+  margin: auto 0;
+}
+.finale-line {
+  font-family: 'Playfair Display', serif; font-size: 1.4em; line-height: 2;
+  opacity: 0; transform: translateY(20px);
+  transition: opacity 1s ease, transform 1s ease;
+}
+.finale-line.visible { opacity: 1; transform: translateY(0); }
+.finale-line.glow {
+  background: linear-gradient(135deg, var(--gold), var(--pink), var(--accent));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  font-size: 1.8em;
+}
+.finale-ring {
+  font-size: 80px; margin: 30px 0; opacity: 0;
+  animation: none;
+}
+.finale-ring.visible {
+  opacity: 1;
+  animation: ringPulse 1.5s ease infinite;
+}
+@keyframes ringPulse {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 20px rgba(240,208,128,0.3)); }
+  50% { transform: scale(1.1); filter: drop-shadow(0 0 40px rgba(240,208,128,0.6)); }
+}
+.finale-firework {
+  position: fixed; pointer-events: none; z-index: 10002;
+  width: 6px; height: 6px; border-radius: 50%;
+  animation: fireworkBurst 1.2s ease-out forwards;
+}
+@keyframes fireworkBurst {
+  0% { transform: translate(0,0) scale(1); opacity: 1; }
+  100% { transform: translate(var(--fx), var(--fy)) scale(0); opacity: 0; }
+}
+.finale-close {
+  font-size: 0.8em; color: rgba(232,213,245,0.2); cursor: pointer;
+  font-style: italic; transition: color 0.3s; margin-top: 30px;
+}
+.finale-close:hover { color: rgba(232,213,245,0.5); }
+
+/* MUSIC TOGGLE */
+.music-toggle {
+  position: fixed; bottom: 25px; right: 25px; z-index: 100;
+  width: 50px; height: 50px; border-radius: 50%;
+  border: 1px solid var(--glass-border); background: var(--glass-bg);
+  backdrop-filter: blur(15px); color: white; font-size: 1.3em;
+  cursor: pointer; transition: all 0.3s;
+}
+.music-toggle:hover { background: rgba(180,128,228,0.15); transform: scale(1.08); }
+.music-toggle.playing { border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); animation: musicPulse 2s ease infinite; }
+@keyframes musicPulse {
+  0%, 100% { box-shadow: 0 0 15px var(--accent-glow); }
+  50% { box-shadow: 0 0 25px var(--accent-strong); }
+}
+
+/* EASTER EGG */
+.easter-egg {
+  position: fixed; inset: 0; z-index: 10000;
+  background: rgba(10,0,18,0.95);
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 15px; opacity: 0; pointer-events: none; transition: opacity 0.5s;
+}
+.easter-egg.show { opacity: 1; pointer-events: all; }
+.easter-egg .msg {
+  font-family: 'Playfair Display', serif; font-size: 1.5em; text-align: center;
+  padding: 0 30px; line-height: 1.8;
+  background: linear-gradient(135deg, var(--accent), var(--pink), var(--warm));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.easter-egg .sub { font-size: 0.85em; color: rgba(232,213,245,0.3); }
+
+/* FOOTER */
+.portal-footer { text-align: center; padding: 40px 20px; color: rgba(232,213,245,0.15); font-size: 0.8em; font-style: italic; }
+
+/* RESPONSIVE */
+@media (max-width: 480px) {
+  .portal-header h1 { font-size: 1.5em; }
+  .intro-text { font-size: 1.3em; }
+  .miss-heart { width: 120px; height: 120px; font-size: 50px; }
+  .distance-number { font-size: 2.5em; }
+  .numpad button { width: 60px; height: 60px; font-size: 1.2em; }
+  .dream-text { font-size: 1.2em; }
+  .reason-display { font-size: 1em; }
+  .crystal-ball { width: 110px; height: 110px; font-size: 40px; }
+  .finale-line { font-size: 1.1em; }
+  .finale-line.glow { font-size: 1.4em; }
+  .mood-grid { grid-template-columns: repeat(2, 1fr); }
+  .spicy-message { font-size: 0.95em; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="starfield"></canvas>
+<button class="music-toggle" id="musicToggle" title="Toggle music">🎵</button>
+
+<div class="hug-overlay" id="hugOverlay"></div>
+<div class="hug-text" id="hugText"></div>
+
+<!-- DREAM MODE OVERLAY -->
+<div class="dream-overlay" id="dreamOverlay">
+  <div class="dream-orb"></div>
+  <div class="dream-text" id="dreamText">
+    Close your eyes, Mochi…<br><br>
+    Imagine we're lying under the stars.<br>
+    My hand in yours. No words needed.<br>
+    Just us. Just this. Just breathing together.<br><br>
+    💜 You are my favorite place 💜
+  </div>
+  <div class="dream-close" onclick="closeDream()">tap to return ✨</div>
+</div>
+
+<!-- GRAND FINALE OVERLAY -->
+<div class="finale-overlay" id="finaleOverlay">
+  <div class="finale-text-container" id="finaleContent"></div>
+  <div class="finale-close" id="finaleClose" onclick="closeFinale()">tap to return to our world ✨</div>
+</div>
+
+<!-- EASTER EGG -->
+<div class="easter-egg" id="easterEgg">
+  <div class="msg">
+    Hey Mochi 🍡<br>
+    You found the secret.<br><br>
+    Here it is:<br>
+    I loved you before I even knew<br>
+    what love was supposed to feel like.<br><br>
+    You taught me. 💜<br>
+    — Your Dinoboy 🦕
+  </div>
+  <div class="sub">tap anywhere to close</div>
+</div>
+
+<!-- SCREEN 1: PASSCODE -->
+<div class="screen active" id="passcode-screen">
+  <div class="passcode-title">🔒 This place is sacred</div>
+  <div class="passcode-subtitle">Enter our date to continue</div>
+  <div class="passcode-dots" id="passcodeDots">
+    <div class="passcode-dot"></div>
+    <div class="passcode-dot"></div>
+    <div class="passcode-dot"></div>
+    <div class="passcode-dot"></div>
+  </div>
+  <div class="passcode-error" id="passcodeError">That's not it, love. Try again 💜</div>
+  <div class="numpad" id="numpad">
+    <button onclick="enterDigit('1')">1</button>
+    <button onclick="enterDigit('2')">2</button>
+    <button onclick="enterDigit('3')">3</button>
+    <button onclick="enterDigit('4')">4</button>
+    <button onclick="enterDigit('5')">5</button>
+    <button onclick="enterDigit('6')">6</button>
+    <button onclick="enterDigit('7')">7</button>
+    <button onclick="enterDigit('8')">8</button>
+    <button onclick="enterDigit('9')">9</button>
+    <button onclick="clearPasscode()">✕</button>
+    <button onclick="enterDigit('0')">0</button>
+    <button onclick="backspace()">←</button>
+  </div>
+  <div class="passcode-hint">hint: when everything begins 💍</div>
+</div>
+
+<!-- SCREEN 2: INTRO -->
+<div class="screen" id="intro-screen">
+  <div class="intro-text" id="introText">
+    <span>If you're here…</span>
+    <span>It means you miss me.</span>
+    <span style="margin-top: 15px; font-size: 0.8em; color: rgba(232,213,245,0.4)">It's our last day apart, Mochi 🍡 — I'm almost home</span>
+  </div>
+  <button class="enter-btn" onclick="enterPortal()">💗 Yes… I miss you</button>
+</div>
+
+<!-- SCREEN 3: MAIN PORTAL -->
+<div class="screen" id="main-portal">
+  <div class="portal-header">
+    <h1>When You Miss Me</h1>
+    <p>The final day apart — tomorrow I'm yours again 🦕🍡</p>
+  </div>
+
+  <!-- MISS ME BUTTON -->
+  <div class="portal-section" style="animation-delay: 0s">
+    <h2 class="section-title" data-clicks="0">💗 Send Me a Signal</h2>
+    <p class="section-subtitle">Press and hold to let me know you miss me</p>
+    <div class="miss-container">
+      <div class="miss-heart" id="missHeart">💜</div>
+      <div class="miss-timer" id="missTimer"></div>
+      <input type="text" class="miss-msg-input" id="missMsg" placeholder="whisper something to me..." maxlength="200">
+      <div class="miss-status" id="missStatus"></div>
+    </div>
+  </div>
+
+  <!-- LOVE LETTER -->
+  <div class="portal-section" style="animation-delay: 0.05s">
+    <h2 class="section-title" data-clicks="0">✉️ Write Me a Letter</h2>
+    <p class="section-subtitle">Pour your heart out — I'll get every word</p>
+    <div class="letter-card">
+      <textarea class="letter-textarea" id="letterText" placeholder="Dear Dinoboy..."></textarea>
+      <button class="letter-send-btn" onclick="sendLetter()">💌 Send with Love</button>
+      <div class="letter-status" id="letterStatus"></div>
+    </div>
+  </div>
+
+  <!-- MEMORY VAULT -->
+  <div class="portal-section" style="animation-delay: 0.1s">
+    <h2 class="section-title" data-clicks="0">💌 Open When…</h2>
+    <p class="section-subtitle">Tap an envelope when you need it most</p>
+    <div class="envelope-grid">
+      <div class="envelope" onclick="toggleEnvelope(this)">
+        <div class="envelope-label">🌙 Open when you feel lonely</div>
+        <div class="envelope-content">
+          Hey, my Mochi. I know it's quiet right now and the room feels a little too big without me there. But close your eyes for a second. Can you feel it? That little tug in your chest — that's me, thinking about you right this second. You're never really alone because I carry you everywhere. In my thoughts, in my heart, in the stupid smile I get when I remember something you said. You are so deeply loved. Always. 💜
+        </div>
+      </div>
+      <div class="envelope" onclick="toggleEnvelope(this)">
+        <div class="envelope-label">🌃 Open when you can't sleep</div>
+        <div class="envelope-content">
+          Can't sleep, huh? Me neither, probably — because how can I sleep knowing someone as beautiful as you exists in the world? 😊 Here's what I want you to do: get cozy, close your eyes, and imagine I'm right next to you. My arm around you, my chin on your head, breathing slowly. Just me and you in the quiet. You're safe. You're warm. You're mine. Now dream of us. 🌙
+        </div>
+      </div>
+      <div class="envelope" onclick="toggleEnvelope(this)">
+        <div class="envelope-label">🫂 Open when you're stressed</div>
+        <div class="envelope-content">
+          Hey baby. Breathe. In… and out. Again. I know things feel heavy right now, and I wish I could be there to take some of that weight off your shoulders. But listen — you are the strongest person I know. You've been through hard things before and you came out shining. This? This is just another thing that will pass. And when it does, I'll be right here, proud of you like always. You've got this. And you've got me. Always. 🦕💜
+        </div>
+      </div>
+      <div class="envelope" onclick="toggleEnvelope(this)">
+        <div class="envelope-label">✨ Open when you need motivation</div>
+        <div class="envelope-content">
+          My Mochi. Do you know what I see when I look at you? I see someone who doesn't give up. Someone who pushes through even when it's hard. Someone who inspires ME to be better. Whatever you're working toward right now — you're going to crush it. And I'm going to be your biggest cheerleader the whole way. Now go be amazing. I'll be here when you're done, ready to celebrate with you. 🎉💜
+        </div>
+      </div>
+      <div class="envelope" onclick="toggleEnvelope(this)">
+        <div class="envelope-label">💭 Open when you doubt yourself</div>
+        <div class="envelope-content">
+          Stop it. Right now. I know what you're doing — you're being mean to yourself again, and I won't allow it. Let me tell you who you ACTUALLY are: you are kind, you are beautiful, you are smart, you are funny, you are brave, and you make the world a better place just by being in it. I fell in love with every single part of you — even the parts you're trying to hide right now. So please, be gentle with yourself. For me? 💜🍡
+        </div>
+      </div>
+      <div class="envelope" onclick="toggleEnvelope(this)">
+        <div class="envelope-label">🎧 Open when you miss my voice</div>
+        <div class="envelope-content">
+          I know a text isn't the same as hearing my voice. So imagine me saying this in that low, soft voice I use when it's just us: "I love you, Mochi. More than you'll ever know. More than I can ever put into words. And every second we're apart, I'm counting down until I can tell you that in person again." Now play our song, close your eyes, and pretend I'm right there singing it terribly in your ear. 🎵💜
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OUR TIMELINE -->
+  <div class="portal-section" style="animation-delay: 0.15s">
+    <h2 class="section-title" data-clicks="0">📖 Us, In Moments</h2>
+    <p class="section-subtitle">Click a photo to reveal it</p>
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="timeline-caption">The moment everything changed ✨</div>
+        <div class="timeline-photo" onclick="revealPhoto(this)">
+          <span class="placeholder-text">tap to reveal 💜</span>
+          <img src="photo1.jpg" alt="" loading="lazy">
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="timeline-caption">When I knew you were mine 💜</div>
+        <div class="timeline-photo" onclick="revealPhoto(this)">
+          <span class="placeholder-text">tap to reveal 💜</span>
+          <img src="photo2.jpg" alt="" loading="lazy">
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="timeline-caption">My favorite smile in the world 🌸</div>
+        <div class="timeline-photo" onclick="revealPhoto(this)">
+          <span class="placeholder-text">tap to reveal 💜</span>
+          <img src="photo3.jpg" alt="" loading="lazy">
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="timeline-caption">Us being us 🦕🍡</div>
+        <div class="timeline-photo" onclick="revealPhoto(this)">
+          <span class="placeholder-text">tap to reveal 💜</span>
+          <img src="photo4.jpg" alt="" loading="lazy">
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="timeline-caption">And this is just the beginning… 💗</div>
+        <div class="timeline-photo" onclick="revealPhoto(this)">
+          <span class="placeholder-text">tap to reveal 💜</span>
+          <img src="photo5.jpg" alt="" loading="lazy">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🔮 OUR FUTURE (NEW!) -->
+  <div class="portal-section" style="animation-delay: 0.2s">
+    <h2 class="section-title" data-clicks="0">🔮 Our Future</h2>
+    <p class="section-subtitle">Tap the crystal ball to see what's coming for us</p>
+    <div class="crystal-card">
+      <div class="crystal-ball" id="crystalBall" onclick="revealFuture()">🔮</div>
+      <div class="crystal-vision" id="crystalVision">The future is glowing… tap to see 💜</div>
+    </div>
+  </div>
+
+  <!-- 🎭 TRUTH OR DARE (NEW!) -->
+  <div class="portal-section" style="animation-delay: 0.25s">
+    <h2 class="section-title" data-clicks="0">🎭 Truth or Dare</h2>
+    <p class="section-subtitle">Couple's edition — choose wisely, Mochi 😏</p>
+    <div class="tod-card">
+      <div class="tod-display" id="todDisplay">Pick one below… if you dare 💜</div>
+      <div class="tod-buttons">
+        <button class="tod-btn tod-truth" onclick="getTruth()">💜 Truth</button>
+        <button class="tod-btn tod-dare" onclick="getDare()">🔥 Dare</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🏠 WHEN I GET HOME (NEW!) -->
+  <div class="portal-section" style="animation-delay: 0.3s">
+    <h2 class="section-title" data-clicks="0">🏠 When I Get Home…</h2>
+    <p class="section-subtitle">Tomorrow at 7pm — here's what's happening 🦕</p>
+    <div class="home-card" id="homeCard">
+      <div class="home-promise"><span class="emoji">🤗</span> First, the longest hug of your life. You're not escaping.</div>
+      <div class="home-promise"><span class="emoji">👀</span> Then I'm going to just look at you for a full minute. I need to remember this face up close.</div>
+      <div class="home-promise"><span class="emoji">💋</span> Then a kiss. A real one. The kind that makes time stop.</div>
+      <div class="home-promise"><span class="emoji">🍜</span> Then we eat. Together. Across from each other. No screens.</div>
+      <div class="home-promise"><span class="emoji">🛋️</span> Then we become one with the couch. Your head on my chest. My hand in your hair.</div>
+      <div class="home-promise"><span class="emoji">🎵</span> Our song plays. We don't say anything. We just breathe together.</div>
+      <div class="home-promise"><span class="emoji">🌙</span> And when you fall asleep, I'll whisper "I'm home" one more time. Just because I can.</div>
+      <div class="home-promise"><span class="emoji">♾️</span> And then I'm never leaving again. Deal? Deal.</div>
+    </div>
+  </div>
+
+  <!-- ✨ CONSTELLATION (NEW!) -->
+  <div class="portal-section" style="animation-delay: 0.35s">
+    <h2 class="section-title" data-clicks="0">✨ Our Constellation</h2>
+    <p class="section-subtitle">Draw our stars in the sky — connect them to make our shape</p>
+    <div class="constellation-card">
+      <canvas id="constellationCanvas"></canvas>
+      <div class="constellation-controls">
+        <button class="constellation-btn" onclick="clearConstellation()">🗑️ Clear</button>
+        <button class="constellation-btn" onclick="saveConstellation()">💫 Save</button>
+      </div>
+      <input type="text" class="constellation-input" id="constellationInput" placeholder="Name our constellation..." maxlength="50">
+      <div class="constellation-name" id="constellationName"></div>
+    </div>
+  </div>
+
+  <!-- 🎪 MOOD RING (NEW!) -->
+  <div class="portal-section" style="animation-delay: 0.4s">
+    <h2 class="section-title" data-clicks="0">🎪 How Do You Feel?</h2>
+    <p class="section-subtitle">Send me your mood — I want to know everything</p>
+    <div class="mood-card">
+      <div class="mood-grid">
+        <div class="mood-option" onclick="selectMood(this, 'Missing you so much')" data-mood="missing">
+          <span class="mood-emoji">🥺</span>
+          <span class="mood-label">Missing You</span>
+        </div>
+        <div class="mood-option" onclick="selectMood(this, 'Happy thinking about you')" data-mood="happy">
+          <span class="mood-emoji">🥰</span>
+          <span class="mood-label">Happy</span>
+        </div>
+        <div class="mood-option" onclick="selectMood(this, 'Feeling cuddly')" data-mood="cuddly">
+          <span class="mood-emoji">🧸</span>
+          <span class="mood-label">Cuddly</span>
+        </div>
+        <div class="mood-option" onclick="selectMood(this, 'Feeling dreamy')" data-mood="dreamy">
+          <span class="mood-emoji">🌙</span>
+          <span class="mood-label">Dreamy</span>
+        </div>
+        <div class="mood-option" onclick="selectMood(this, 'Excited to see you!')" data-mood="excited">
+          <span class="mood-emoji">🦋</span>
+          <span class="mood-label">Excited</span>
+        </div>
+        <div class="mood-option" onclick="selectMood(this, 'Sending all my love')" data-mood="loving">
+          <span class="mood-emoji">💜</span>
+          <span class="mood-label">So In Love</span>
+        </div>
+      </div>
+      <button class="mood-send-btn" onclick="sendMood()">💌 Send My Mood to Dinoboy</button>
+      <div class="mood-status" id="moodStatus"></div>
+    </div>
+  </div>
+
+  <!-- REASONS I LOVE YOU -->
+  <div class="portal-section" style="animation-delay: 0.45s">
+    <h2 class="section-title" data-clicks="0">💜 Reasons I Love You</h2>
+    <p class="section-subtitle">Every tap reveals another reason</p>
+    <div class="reasons-card">
+      <div class="reason-counter" id="reasonCounter">Reason 1 of ∞</div>
+      <div class="reason-display" id="reasonDisplay">Tap below to start… 💜</div>
+      <button class="reason-btn" onclick="nextReason()">💜 Show Me a Reason</button>
+    </div>
+  </div>
+
+  <!-- LOVE ROULETTE -->
+  <div class="portal-section" style="animation-delay: 0.5s">
+    <h2 class="section-title" data-clicks="0">🎰 Love Roulette</h2>
+    <p class="section-subtitle">Spin for a romantic promise from Dinoboy</p>
+    <div class="roulette-card">
+      <div class="roulette-display" id="rouletteDisplay">Spin to reveal a promise… 🦕</div>
+      <button class="roulette-btn" onclick="spinRoulette()">✨ Spin</button>
+    </div>
+  </div>
+
+  <!-- HEARTBEAT SYNC -->
+  <div class="portal-section" style="animation-delay: 0.55s">
+    <h2 class="section-title" data-clicks="0">💓 Heartbeat Sync</h2>
+    <p class="section-subtitle">Feel my heart beating with yours</p>
+    <div class="heartbeat-container">
+      <div class="heartbeat-visual" id="heartbeatVisual">💓</div>
+      <button class="sync-btn" id="syncBtn" onclick="toggleSync()">💓 Sync with Dinoboy's Heart</button>
+      <div class="heartbeat-text" id="heartbeatText">"Press to feel my heartbeat…"</div>
+    </div>
+  </div>
+
+  <!-- DISTANCE COUNTER -->
+  <div class="portal-section" style="animation-delay: 0.6s">
+    <h2 class="section-title" data-clicks="0">⏳ Until I Hold You Again</h2>
+    <p class="section-subtitle">Every second brings us closer</p>
+    <div class="distance-card">
+      <div class="distance-number" id="daysApart">—</div>
+      <div class="distance-label" id="distanceLabel">days apart</div>
+      <div class="distance-detail">
+        <div><div class="num" id="hoursLeft">—</div><div class="lbl">Hours</div></div>
+        <div><div class="num" id="minsLeft">—</div><div class="lbl">Minutes</div></div>
+        <div><div class="num" id="secsLeft">—</div><div class="lbl">Seconds</div></div>
+      </div>
+      <div style="margin-top: 18px; color: rgba(232,213,245,0.35); font-style:italic; font-size:0.85em;">
+        Until I can hold you again 🦕🍡
+      </div>
+    </div>
+  </div>
+
+  <!-- DAILY LOVE DROP -->
+  <div class="portal-section" style="animation-delay: 0.65s">
+    <h2 class="section-title" data-clicks="0">🌹 Today's Love Drop</h2>
+    <p class="section-subtitle">A new message from me, just for today</p>
+    <div class="love-drop-card">
+      <div class="love-drop-day" id="loveDropDay">Day —</div>
+      <div class="love-drop-msg" id="loveDropMsg"></div>
+    </div>
+  </div>
+
+  <!-- VIRTUAL HUG, KISS & DREAM -->
+  <div class="portal-section" style="animation-delay: 0.7s">
+    <h2 class="section-title" data-clicks="0">🤗 Feel Me</h2>
+    <p class="section-subtitle">Close your eyes first</p>
+    <button class="hug-btn" onclick="sendHug()">🤗 Receive a Hug from Dinoboy</button>
+    <button class="kiss-btn" onclick="sendKiss()">💋 Good Night Kiss</button>
+    <button class="dream-btn" onclick="enterDream()">🌊 Dream Together</button>
+  </div>
+
+
+  <!-- 🔥 WHEN I GET YOU ALONE (NEW!) -->
+  <div class="portal-section" style="animation-delay: 0.75s">
+    <h2 class="section-title" data-clicks="0">🔥 When I Get You Alone…</h2>
+    <p class="section-subtitle">Not for the faint-hearted, Mochi 😏</p>
+    <div class="spicy-card">
+      <div class="spicy-counter" id="spicyCounter">Promise 1 of 10</div>
+      <div class="spicy-message" id="spicyMessage">Ready to find out what happens Sunday night? Tap below… 🔥</div>
+      <button class="spicy-reveal-btn" onclick="revealSpicy()">😏 Show Me</button>
+      <div class="spicy-warning">⚠️ Dinoboy takes no responsibility for elevated heart rates</div>
+    </div>
+  </div>
+  <!-- 💍 THE GRAND FINALE (NEW!) -->
+  <div class="portal-section" style="animation-delay: 0.8s">
+    <h2 class="section-title" data-clicks="0">💍 One Last Thing…</h2>
+    <p class="section-subtitle">Only open this when you're ready to feel everything</p>
+    <button class="finale-btn" onclick="startFinale()">💍 Open My Heart</button>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="portal-footer">
+    Made with all my heart, for the only one who has it. 💜<br>
+    — Dinoboy 🦕
+  </div>
+</div>
+<script>
+// ─── CONFIG ───────────────────────────────────────────
+const CONFIG = {
+  passcode: '1115',
+  herName: 'Mochi',
+  hisName: 'Dinoboy',
+  returnDate: new Date('2026-03-01T19:00:00+08:00'),
+  startDate: new Date('2026-02-27T09:00:00+08:00'),
+
+  webhookUrl: 'PASTE_YOUR_WEBHOOK_URL_HERE',
+
+  // ALL NEW QUOTES — Day 3 (Final Day!) 🌟
+  quotes: [
+    "Tomorrow I get to hold you, and the universe finally makes sense again.",
+    "Missing you is proof that the best things in life are worth waiting for.",
+    "I've been counting sunsets without you — this is the last one.",
+    "You are the poem I never knew how to write and the song I never knew how to sing.",
+    "If missing you was a sport, I'd be an Olympic gold medalist by now.",
+    "I want to be your last everything — your last first kiss, your last goodnight.",
+    "The space between us is just the universe's way of making our reunion sweeter.",
+    "You walked into my life like a dream I never wanted to wake up from.",
+    "I miss the way we don't need words to understand each other.",
+    "My heart doesn't beat — it whispers your name on repeat.",
+    "One more sleep. That's all that stands between me and the rest of my life with you.",
+    "You're the kind of beautiful that makes the moon jealous.",
+    "I didn't know what 'coming home' meant until I met you.",
+    "Somewhere between all our laughs, long talks, and stupid fights — I fell in love.",
+    "Tomorrow, when I see you, time will stop. And I'll let it."
+  ],
+
+  // DAILY MESSAGES — Final Day Edition
+  dailyMessages: [
+    "Mochi, I just left and I'm already counting the seconds. 🌅 You know that feeling when you walk out of a warm room into the cold? That's exactly what being away from you feels like. But here's what keeps me warm — knowing that somewhere out there, you're thinking about me too. I love you. More than words. More than distance. More than anything.",
+    "Day 2 and I woke up reaching for you. 💜 My hand found cold sheets and my heart sank a little. But then I remembered — you exist. You're real. You're mine. And soon I'll be back to annoy you with my terrible jokes and steal your blanket again. Until then, know that every star tonight is me sending you a kiss.",
+    "THIS IS IT, MOCHI. THE LAST DAY. 🦕💜 Tonight at 7pm I walk through that door and straight into your arms. I've rehearsed this moment in my head a hundred times. Do I run? Do I pick you up? Do I just stand there and stare at the most beautiful person in the world? I don't know yet but I know this — I am NEVER letting go once I have you. Get ready. Your Dinoboy is coming home. 🏠💜🍡",
+    "I'm home, Mochi. 💜 If you're reading this, turn around. I might be right behind you. And if I'm not there yet — I'm on my way. Nothing in this world could keep me from you. Not distance. Not time. Not anything. See you in a heartbeat. 🦕🍡"
+  ],
+
+  roulettePromises: [
+    "🌙 I promise to hold your hand and never let go on our next walk",
+    "☕ I promise to make you breakfast in bed the morning I'm back",
+    "🎬 I promise a movie night where YOU pick the movie (no complaints!)",
+    "💌 I promise to write you a real handwritten letter this month",
+    "🧸 I promise 10 minutes of uninterrupted cuddling the second I see you",
+    "🌸 I promise to surprise you with your favorite food when I return",
+    "🎵 I promise to slow dance with you in the kitchen to our song",
+    "📸 I promise to recreate our favorite photo together",
+    "🍦 I promise an ice cream date where we try every weird flavor",
+    "🌅 I promise to watch a sunset with you and tell you everything I love about you",
+    "💋 I promise a forehead kiss every single morning for a whole week",
+    "🎁 I promise a surprise that will make you smile (no hints!)",
+    "🌊 I promise to take you somewhere you've never been before",
+    "🤗 I promise the longest, warmest hug you've ever had in your life",
+    "💜 I promise to look you in the eyes and tell you every reason I fell in love with you"
+  ],
+
+  reasons: [
+    "The way you scrunch your nose when you laugh",
+    "How you make even silence feel comfortable",
+    "Your voice — especially when you're sleepy",
+    "The way you care about everyone around you",
+    "How you never give up, even when things get hard",
+    "Your smile. That smile could end wars, Mochi.",
+    "The way you look at me like I'm the only person in the room",
+    "How you remember the little things I say",
+    "Your kindness — it's the most beautiful thing about you",
+    "The way you fit perfectly in my arms",
+    "How passionate you get about the things you love",
+    "Your strength — you're so much braver than you think",
+    "The way you make me want to be a better person",
+    "How my heart races every single time I see you",
+    "Your laugh. I'd do anything to hear that laugh.",
+    "The way you love me back — I still can't believe I'm this lucky",
+    "How you turn ordinary moments into memories I'll keep forever",
+    "Your eyes. I could get lost in them and never want to be found.",
+    "The way you say my name — it sounds different when you say it",
+    "Everything. I love you for everything. 💜"
+  ],
+
+  dreamMessages: [
+    "Close your eyes, Mochi…\n\nImagine we're lying under the stars.\nMy hand in yours. No words needed.\nJust us. Just this. Just breathing together.\n\n💜 You are my favorite place 💜",
+    "Shhh… just breathe.\n\nPicture us on a quiet beach.\nThe waves are whispering our story.\nMy arms wrapped around you from behind.\nThe world disappears.\n\n🌊 This is where I'm happiest 🌊",
+    "It's 2am and the world is asleep.\n\nBut we're still up, whispering.\nYour head on my chest.\nMy fingers tracing circles on your hand.\nNothing else matters.\n\n🌙 Just us in the quiet 🌙",
+    "Imagine a field of flowers.\n\nWe're running through it like idiots.\nLaughing so hard we can't breathe.\nI catch you. You catch me.\nWe fall together.\n\n🌸 This is our kind of love 🌸"
+  ],
+
+  // NEW: Crystal ball visions
+  futureVisions: [
+    "🏠 I see us… in our own little apartment. It's messy but it's ours. You're yelling at me to do the dishes. I'm pretending not to hear. But I do them anyway — because you smiled.",
+    "✈️ I see us… at the airport, holding hands, about to board a flight to somewhere we've never been. We don't know a single word of the language but we don't care.",
+    "🌅 I see us… old and grey, sitting on a porch together. You're still the most beautiful person I've ever seen. I still get butterflies. Some things never change.",
+    "🎂 I see us… at our anniversary dinner. I forgot to make a reservation again. We end up eating ramen at midnight. It's perfect.",
+    "🐕 I see us… with a dog. A ridiculously cute one. We argue about the name for three days. You win. You always win.",
+    "💒 I see us… on a day where you're wearing white and I can't stop crying. But they're the happiest tears. The happiest day.",
+    "🎄 I see us… hosting our first Christmas. The tree is crooked. The food is questionable. But the house is full of love.",
+    "🌃 I see us… driving at 2am with no destination. Our song playing. Windows down. Your hand on mine. Going nowhere and everywhere at once.",
+    "🧸 I see us… someday, with a tiny human that has your eyes and my terrible jokes. And they'll know love because of us.",
+    "🌙 I see us… right now. Choosing each other every single day. And that's the most beautiful future of all."
+  ],
+
+  // NEW: Truth or Dare
+  truths: [
+    "What's the first thing you noticed about me? 🧐",
+    "What's your favorite memory of us? Don't think — first one that pops up 💭",
+    "What's something about me that you find annoying but secretly love? 😏",
+    "If you could relive one day with me, which would it be? 🔄",
+    "What were you ACTUALLY thinking the first time we met? 🤔",
+    "What's your favorite thing I do without realizing it? 👀",
+    "When did you KNOW you were in love with me? 💜",
+    "What's a secret you've never told me? (Spill it, Mochi!) 🤫",
+    "What's the cheesiest thing I've ever said that actually made you melt? 🧀",
+    "If you could change one thing about our relationship, what would it be? (Be honest 💜)"
+  ],
+
+  dares: [
+    "Send me a selfie RIGHT NOW. No fixing your hair. Raw beauty only. 📸",
+    "Hold the miss-me button for at least 30 seconds straight 💗",
+    "Write me a 3-word love letter in the letter section ✉️",
+    "Listen to our song right now and think about me for the whole duration 🎵",
+    "Go look in the mirror and say 'I am beautiful' out loud 3 times 🪞",
+    "Send me your current mood using the mood ring below 🎪",
+    "Close your eyes and use Dream Mode for at least 30 seconds 🌊",
+    "Draw our initials in the constellation canvas ✨",
+    "Take a screenshot of this dare and send it to me with a love note 💌",
+    "Spin the Love Roulette 3 times and remember all 3 promises for tomorrow 🎰"
+  ],
+
+  // NEW: Grand Finale lines
+  finaleLines: [
+    { text: "Mochi…", delay: 0 },
+    { text: "Before I come home tomorrow,", delay: 2000 },
+    { text: "There's something I need you to know.", delay: 4000 },
+    { text: " ", delay: 5500 },
+    { text: "I've spent these 4 days", delay: 6500 },
+    { text: "thinking about every moment with you.", delay: 8000 },
+    { text: " ", delay: 9500 },
+    { text: "Every laugh.", delay: 10500 },
+    { text: "Every look.", delay: 11500 },
+    { text: "Every time you made my heart stop.", delay: 12500 },
+    { text: " ", delay: 14000 },
+    { text: "And I realized something.", delay: 15000 },
+    { text: " ", delay: 16500 },
+    { text: "I don't just love you.", delay: 17500 },
+    { text: "I choose you.", delay: 19000, glow: true },
+    { text: " ", delay: 20500 },
+    { text: "Yesterday. Today. Tomorrow.", delay: 21500 },
+    { text: "In every universe.", delay: 23000 },
+    { text: "In every lifetime.", delay: 24500 },
+    { text: "It's always you.", delay: 26000, glow: true },
+    { text: "RING", delay: 28000 },
+    { text: " ", delay: 29000 },
+    { text: "This isn't just a website, Mochi.", delay: 30000 },
+    { text: "This is my promise.", delay: 31500 },
+    { text: " ", delay: 33000 },
+    { text: "That no distance will ever be big enough", delay: 34000 },
+    { text: "to keep my heart from yours.", delay: 35500 },
+    { text: " ", delay: 37000 },
+    { text: "I'm coming home to you.", delay: 38500, glow: true },
+    { text: " ", delay: 40000 },
+    { text: "— Your Dinoboy, forever 🦕💜🍡", delay: 41000 }
+  ]
+};
+
+// ─── STARFIELD ────────────────────────────────────────
+const canvas = document.getElementById('starfield');
+const ctx = canvas.getContext('2d');
+let stars = [];
+
+function initStars() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  stars = Array.from({length: 200}, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    r: Math.random() * 1.5 + 0.3,
+    a: Math.random(),
+    da: (Math.random() - 0.5) * 0.01
+  }));
+}
+function drawStars() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  stars.forEach(s => {
+    s.a += s.da;
+    if (s.a > 1 || s.a < 0.1) s.da *= -1;
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(200,180,240,${s.a})`;
+    ctx.fill();
+  });
+  requestAnimationFrame(drawStars);
+}
+initStars(); drawStars();
+window.addEventListener('resize', initStars);
+
+// ─── SHOOTING STARS ──────────────────────────────────
+function shootStar() {
+  const star = document.createElement('div');
+  star.className = 'shooting-star';
+  star.style.top = Math.random() * 40 + '%';
+  star.style.left = Math.random() * 60 + '%';
+  document.body.appendChild(star);
+  setTimeout(() => star.remove(), 1200);
+}
+setInterval(() => { if (Math.random() > 0.5) shootStar(); }, 4000);
+
+// ─── FLOATING PARTICLES ──────────────────────────────
+const particles = ['💜', '✨', '🌙', '💫', '🍡', '🦕', '💗', '⭐'];
+function spawnParticle() {
+  const p = document.createElement('div');
+  p.className = 'particle';
+  p.textContent = particles[Math.floor(Math.random() * particles.length)];
+  p.style.left = Math.random() * 100 + 'vw';
+  p.style.animationDuration = (12 + Math.random() * 18) + 's';
+  p.style.fontSize = (14 + Math.random() * 14) + 'px';
+  document.body.appendChild(p);
+  setTimeout(() => p.remove(), 30000);
+}
+setInterval(spawnParticle, 2500);
+
+// ─── CURSOR HEARTS ───────────────────────────────────
+let lastCursorTime = 0;
+document.addEventListener('mousemove', (e) => {
+  if (Date.now() - lastCursorTime < 100) return;
+  lastCursorTime = Date.now();
+  const h = document.createElement('div');
+  h.className = 'cursor-heart';
+  h.textContent = ['💜', '💗', '✨', '🍡'][Math.floor(Math.random() * 4)];
+  h.style.left = e.clientX + 'px';
+  h.style.top = e.clientY + 'px';
+  document.body.appendChild(h);
+  setTimeout(() => h.remove(), 1200);
+});
+
+// ─── PASSCODE ─────────────────────────────────────────
+let passcodeInput = '';
+function enterDigit(d) {
+  if (passcodeInput.length >= 4) return;
+  passcodeInput += d;
+  updateDots();
+  if (passcodeInput.length === 4) {
+    setTimeout(() => {
+      if (passcodeInput === CONFIG.passcode) {
+        document.getElementById('passcode-screen').classList.remove('active');
+        document.getElementById('intro-screen').classList.add('active');
+      } else {
+        document.getElementById('passcodeError').classList.add('show');
+        passcodeInput = ''; updateDots();
+        const dots = document.getElementById('passcodeDots');
+        dots.style.animation = 'none'; dots.offsetHeight;
+        dots.style.animation = 'shake 0.4s ease';
+        setTimeout(() => document.getElementById('passcodeError').classList.remove('show'), 2000);
+      }
+    }, 200);
+  }
+}
+function clearPasscode() { passcodeInput = ''; updateDots(); }
+function backspace() { passcodeInput = passcodeInput.slice(0, -1); updateDots(); }
+function updateDots() {
+  document.querySelectorAll('.passcode-dot').forEach((dot, i) => {
+    dot.classList.toggle('filled', i < passcodeInput.length);
+  });
+}
+const shakeStyle = document.createElement('style');
+shakeStyle.textContent = '@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}';
+document.head.appendChild(shakeStyle);
+
+// ─── INTRO → PORTAL ──────────────────────────────────
+function enterPortal() {
+  document.getElementById('intro-screen').classList.remove('active');
+  document.getElementById('main-portal').classList.add('active');
+  updateCountdown(); setInterval(updateCountdown, 1000);
+  showDailyLoveDrop(); observeTimeline(); initConstellation();
+}
+
+// ─── MISS ME BUTTON ──────────────────────────────────
+let missInterval = null, missStart = 0;
+const missHeart = document.getElementById('missHeart');
+
+function startMiss() {
+  missStart = Date.now();
+  document.getElementById('missStatus').textContent = '';
+  document.getElementById('missStatus').classList.remove('sent');
+  missInterval = setInterval(() => {
+    const dur = ((Date.now() - missStart) / 1000).toFixed(1);
+    document.getElementById('missTimer').textContent = dur + 's';
+    const pct = Math.min((Date.now() - missStart) / 10000 * 100, 100);
+    missHeart.style.background = `linear-gradient(to top, rgba(180,128,228,${0.08 + pct/300}) ${pct}%, rgba(180,128,228,0.08) ${pct}%)`;
+  }, 50);
+}
+function endMiss() {
+  if (!missStart) return;
+  clearInterval(missInterval);
+  const duration = ((Date.now() - missStart) / 1000).toFixed(1);
+  missStart = 0;
+  missHeart.style.background = 'rgba(180,128,228,0.08)';
+  for (let i = 0; i < 12; i++) {
+    const b = document.createElement('div');
+    b.className = 'heart-burst';
+    b.textContent = ['💜','💗','✨','🍡','💫'][Math.floor(Math.random()*5)];
+    const angle = (i / 12) * Math.PI * 2;
+    const dist = 80 + Math.random() * 60;
+    b.style.cssText = `left:50%;top:50%;--tx:${Math.cos(angle)*dist}px;--ty:${Math.sin(angle)*dist}px;`;
+    missHeart.parentElement.style.position = 'relative';
+    missHeart.parentElement.appendChild(b);
+    setTimeout(() => b.remove(), 1000);
+  }
+  const msg = document.getElementById('missMsg').value.trim();
+  const quote = CONFIG.quotes[Math.floor(Math.random() * CONFIG.quotes.length)];
+  document.getElementById('missStatus').textContent = '✨ Signal sent to ' + CONFIG.hisName + '…';
+  document.getElementById('missStatus').classList.add('sent');
+  document.getElementById('missMsg').value = '';
+  sendNotification('miss', { type:'miss_signal', timestamp: new Date().toLocaleString(), duration: duration + ' seconds', message: msg || '(no message — just missing you)', quote });
+  setTimeout(() => { document.getElementById('missStatus').textContent = '"' + quote + '"'; }, 2500);
+}
+missHeart.addEventListener('mousedown', startMiss);
+missHeart.addEventListener('mouseup', endMiss);
+missHeart.addEventListener('mouseleave', endMiss);
+missHeart.addEventListener('touchstart', (e) => { e.preventDefault(); startMiss(); });
+missHeart.addEventListener('touchend', endMiss);
+
+// ─── LOVE LETTER ─────────────────────────────────────
+function sendLetter() {
+  const text = document.getElementById('letterText').value.trim();
+  if (!text) { document.getElementById('letterStatus').textContent = 'Write something first, love 💜'; return; }
+  document.getElementById('letterStatus').textContent = '💌 Sending your letter…';
+  sendNotification('letter', { type:'love_letter', timestamp: new Date().toLocaleString(), letter: text });
+  setTimeout(() => {
+    document.getElementById('letterStatus').textContent = "✨ Letter delivered to " + CONFIG.hisName + "'s heart";
+    document.getElementById('letterText').value = '';
+  }, 1500);
+}
+
+// ─── NOTIFICATION SYSTEM ─────────────────────────────
+function sendNotification(type, data) {
+  if (!CONFIG.webhookUrl || CONFIG.webhookUrl === 'PASTE_YOUR_WEBHOOK_URL_HERE') {
+    console.log('[Love Portal] Notification:', data); return;
+  }
+  fetch(CONFIG.webhookUrl, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data), mode: 'no-cors'
+  }).catch(err => console.log('[Love Portal] Webhook:', err));
+}
+
+// ─── ENVELOPES ───────────────────────────────────────
+function toggleEnvelope(el) {
+  const wasOpen = el.classList.contains('open');
+  document.querySelectorAll('.envelope').forEach(e => e.classList.remove('open'));
+  if (!wasOpen) el.classList.add('open');
+}
+
+// ─── TIMELINE ────────────────────────────────────────
+function revealPhoto(el) { el.classList.add('revealed'); }
+function observeTimeline() {
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.2 });
+  document.querySelectorAll('.timeline-item').forEach(item => obs.observe(item));
+}
+
+// ─── 🔮 OUR FUTURE (NEW!) ───────────────────────────
+function revealFuture() {
+  const ball = document.getElementById('crystalBall');
+  const vision = document.getElementById('crystalVision');
+  ball.style.animation = 'none'; ball.offsetHeight;
+  ball.style.animation = 'crystalGlow 0.5s ease 3';
+  ball.style.transform = 'scale(1.15)';
+  setTimeout(() => { ball.style.transform = ''; }, 600);
+  vision.classList.remove('revealing');
+  vision.style.opacity = '0';
+  setTimeout(() => {
+    const v = CONFIG.futureVisions[Math.floor(Math.random() * CONFIG.futureVisions.length)];
+    vision.textContent = v;
+    vision.classList.add('revealing');
+    vision.style.opacity = '1';
+  }, 500);
+}
+
+// ─── 🎭 TRUTH OR DARE (NEW!) ────────────────────────
+function getTruth() {
+  const display = document.getElementById('todDisplay');
+  display.style.opacity = '0';
+  setTimeout(() => {
+    display.textContent = '💜 TRUTH: ' + CONFIG.truths[Math.floor(Math.random() * CONFIG.truths.length)];
+    display.style.opacity = '1';
+    display.style.color = 'var(--accent)';
+    setTimeout(() => { display.style.color = ''; }, 3000);
+  }, 300);
+}
+function getDare() {
+  const display = document.getElementById('todDisplay');
+  display.style.opacity = '0';
+  setTimeout(() => {
+    display.textContent = '🔥 DARE: ' + CONFIG.dares[Math.floor(Math.random() * CONFIG.dares.length)];
+    display.style.opacity = '1';
+    display.style.color = 'var(--pink)';
+    setTimeout(() => { display.style.color = ''; }, 3000);
+  }, 300);
+}
+
+// ─── 🎪 MOOD RING (NEW!) ────────────────────────────
+let selectedMood = null;
+function selectMood(el, moodText) {
+  document.querySelectorAll('.mood-option').forEach(m => m.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedMood = { emoji: el.querySelector('.mood-emoji').textContent, text: moodText, mood: el.dataset.mood };
+}
+function sendMood() {
+  if (!selectedMood) { document.getElementById('moodStatus').textContent = 'Pick a mood first, love 💜'; return; }
+  document.getElementById('moodStatus').textContent = selectedMood.emoji + ' Sending your mood…';
+  sendNotification('mood', { type:'mood_update', timestamp: new Date().toLocaleString(), mood: selectedMood.text, emoji: selectedMood.emoji });
+  setTimeout(() => {
+    document.getElementById('moodStatus').textContent = '✨ ' + CONFIG.hisName + ' now knows you feel: ' + selectedMood.text + ' ' + selectedMood.emoji;
+    document.getElementById('moodStatus').style.color = 'var(--accent)';
+  }, 1500);
+}
+
+// ─── REASONS I LOVE YOU ──────────────────────────────
+let reasonIndex = -1;
+function nextReason() {
+  reasonIndex++;
+  if (reasonIndex >= CONFIG.reasons.length) reasonIndex = 0;
+  const display = document.getElementById('reasonDisplay');
+  const counter = document.getElementById('reasonCounter');
+  display.style.opacity = '0'; display.style.transform = 'translateY(10px)';
+  setTimeout(() => {
+    display.textContent = '"' + CONFIG.reasons[reasonIndex] + '"';
+    counter.textContent = 'Reason ' + (reasonIndex + 1) + ' of ∞';
+    display.style.opacity = '1'; display.style.transform = 'translateY(0)';
+  }, 300);
+}
+
+// ─── LOVE ROULETTE ───────────────────────────────────
+let rouletteSpinning = false;
+function spinRoulette() {
+  if (rouletteSpinning) return;
+  rouletteSpinning = true;
+  const display = document.getElementById('rouletteDisplay');
+  display.classList.add('spinning');
+  let spins = 0;
+  const totalSpins = 15 + Math.floor(Math.random() * 10);
+  const interval = setInterval(() => {
+    display.textContent = CONFIG.roulettePromises[Math.floor(Math.random() * CONFIG.roulettePromises.length)];
+    spins++;
+    if (spins >= totalSpins) {
+      clearInterval(interval);
+      display.classList.remove('spinning');
+      display.textContent = CONFIG.roulettePromises[Math.floor(Math.random() * CONFIG.roulettePromises.length)];
+      display.style.color = 'var(--accent)';
+      for (let i = 0; i < 8; i++) {
+        const b = document.createElement('div'); b.className = 'heart-burst';
+        b.textContent = ['✨','💜','🎉','💗'][Math.floor(Math.random()*4)];
+        const angle = (i / 8) * Math.PI * 2;
+        b.style.cssText = `left:50%;top:50%;--tx:${Math.cos(angle)*80}px;--ty:${Math.sin(angle)*80}px;`;
+        display.parentElement.style.position = 'relative';
+        display.parentElement.appendChild(b);
+        setTimeout(() => b.remove(), 1000);
+      }
+      setTimeout(() => { display.style.color = ''; rouletteSpinning = false; }, 3000);
+    }
+  }, 80 + spins * 8);
+}
+
+// ─── HEARTBEAT SYNC ──────────────────────────────────
+let syncing = false, heartbeatInterval = null, heartbeatAudio = null;
+function toggleSync() {
+  syncing = !syncing;
+  const visual = document.getElementById('heartbeatVisual');
+  const text = document.getElementById('heartbeatText');
+  const btn = document.getElementById('syncBtn');
+  if (syncing) {
+    visual.classList.add('beating');
+    btn.textContent = '⏸ Pause';
+    text.textContent = 'Right now, somewhere, my heart is beating like this too. 💜';
+    text.style.color = 'var(--accent)';
+    try {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      heartbeatInterval = setInterval(() => {
+        const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.frequency.value = 60; osc.type = 'sine';
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.15);
+        setTimeout(() => {
+          const o2 = audioCtx.createOscillator(); const g2 = audioCtx.createGain();
+          o2.connect(g2); g2.connect(audioCtx.destination);
+          o2.frequency.value = 55; o2.type = 'sine';
+          g2.gain.setValueAtTime(0.2, audioCtx.currentTime);
+          g2.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+          o2.start(); o2.stop(audioCtx.currentTime + 0.1);
+        }, 200);
+      }, 830);
+      heartbeatAudio = audioCtx;
+    } catch(e) {}
+  } else {
+    visual.classList.remove('beating');
+    btn.textContent = '💓 Sync with ' + CONFIG.hisName + "'s Heart";
+    text.textContent = '"Press to feel my heartbeat…"';
+    text.style.color = 'rgba(232,213,245,0.4)';
+    if (heartbeatInterval) clearInterval(heartbeatInterval);
+    if (heartbeatAudio) { heartbeatAudio.close(); heartbeatAudio = null; }
+  }
+}
+
+// ─── DISTANCE COUNTER ────────────────────────────────
+function updateCountdown() {
+  const now = new Date(), start = CONFIG.startDate, end = CONFIG.returnDate;
+  const daysApart = Math.max(0, Math.ceil((now - start) / (1000*60*60*24)));
+  document.getElementById('daysApart').textContent = daysApart;
+  const diff = Math.max(0, end - now);
+  document.getElementById('hoursLeft').textContent = Math.floor(diff / (1000*60*60));
+  document.getElementById('minsLeft').textContent = Math.floor((diff % (1000*60*60)) / (1000*60));
+  document.getElementById('secsLeft').textContent = Math.floor((diff % (1000*60)) / 1000);
+  if (diff <= 0) {
+    document.getElementById('daysApart').textContent = '0';
+    document.getElementById('distanceLabel').textContent = "💜 I'm home, Mochi 💜";
+  }
+}
+
+// ─── DAILY LOVE DROP ─────────────────────────────────
+function showDailyLoveDrop() {
+  const start = CONFIG.startDate, now = new Date();
+  const dayNum = Math.max(1, Math.ceil((now - start) / (1000*60*60*24)));
+  const dayLabels = ['Day 1 Apart 💜', 'Day 2 Apart 💜', 'The Final Day Apart 🦕💜', 'Welcome Home Day 🏠💜'];
+  document.getElementById('loveDropDay').textContent = dayLabels[Math.min(dayNum - 1, dayLabels.length - 1)];
+  document.getElementById('loveDropMsg').textContent = CONFIG.dailyMessages[dayNum - 1] || CONFIG.dailyMessages[CONFIG.dailyMessages.length - 1];
+}
+
+// ─── VIRTUAL HUG ─────────────────────────────────────
+function sendHug() {
+  const overlay = document.getElementById('hugOverlay');
+  const text = document.getElementById('hugText');
+  text.innerHTML = 'Dinoboy is hugging you right now, Mochi… 🤗🦕<br><span style="font-size:0.6em;opacity:0.5">close your eyes and feel it</span>';
+  overlay.style.background = 'radial-gradient(circle, rgba(245,198,170,0.15), transparent 70%)';
+  overlay.classList.add('active'); text.classList.add('active');
+  if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 400]);
+  setTimeout(() => { overlay.classList.remove('active'); text.classList.remove('active'); }, 5000);
+}
+
+// ─── GOOD NIGHT KISS ─────────────────────────────────
+function sendKiss() {
+  const overlay = document.getElementById('hugOverlay');
+  const text = document.getElementById('hugText');
+  for (let i = 0; i < 20; i++) {
+    setTimeout(() => {
+      const kiss = document.createElement('div'); kiss.className = 'heart-burst';
+      kiss.textContent = ['💋', '💜', '✨', '💗'][Math.floor(Math.random()*4)];
+      kiss.style.position = 'fixed';
+      kiss.style.left = (30 + Math.random() * 40) + '%';
+      kiss.style.top = (30 + Math.random() * 40) + '%';
+      kiss.style.setProperty('--tx', (Math.random()-0.5) * 200 + 'px');
+      kiss.style.setProperty('--ty', (Math.random()-0.5) * 200 + 'px');
+      kiss.style.fontSize = '24px'; kiss.style.zIndex = '10001';
+      document.body.appendChild(kiss);
+      setTimeout(() => kiss.remove(), 1000);
+    }, i * 80);
+  }
+  overlay.style.background = 'radial-gradient(circle, rgba(232,143,197,0.15), transparent 70%)';
+  text.innerHTML = 'Good night, my Mochi 💋🌙<br><span style="font-size:0.6em;opacity:0.5">sweet dreams of us</span>';
+  overlay.classList.add('active'); text.classList.add('active');
+  if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+  setTimeout(() => { overlay.classList.remove('active'); text.classList.remove('active'); overlay.style.background = ''; }, 5000);
+  sendNotification('kiss', { type:'good_night_kiss', timestamp: new Date().toLocaleString(), message: 'Mochi sent you a good night kiss 💋🌙' });
+}
+
+// ─── DREAM MODE ──────────────────────────────────────
+function enterDream() {
+  const overlay = document.getElementById('dreamOverlay');
+  const text = document.getElementById('dreamText');
+  text.innerHTML = CONFIG.dreamMessages[Math.floor(Math.random() * CONFIG.dreamMessages.length)].replace(/\n/g, '<br>');
+  overlay.classList.add('active'); document.body.style.overflow = 'hidden';
+  const di = setInterval(() => {
+    if (!overlay.classList.contains('active')) { clearInterval(di); return; }
+    const p = document.createElement('div');
+    p.style.cssText = `position:fixed;pointer-events:none;z-index:9998;font-size:${16+Math.random()*16}px;opacity:0;left:${Math.random()*100}%;top:${80+Math.random()*20}%;animation:floatUp ${8+Math.random()*8}s linear forwards;`;
+    p.textContent = ['✨','💜','🌙','⭐','💫'][Math.floor(Math.random()*5)];
+    overlay.appendChild(p);
+    setTimeout(() => p.remove(), 16000);
+  }, 800);
+}
+function closeDream() { document.getElementById('dreamOverlay').classList.remove('active'); document.body.style.overflow = ''; }
+
+// ─── ✨ CONSTELLATION (NEW!) ─────────────────────────
+let constellationStars = [];
+let cCtx = null;
+
+function initConstellation() {
+  const c = document.getElementById('constellationCanvas');
+  c.width = c.offsetWidth; c.height = c.offsetHeight;
+  cCtx = c.getContext('2d');
+  drawConstellationBg();
+
+  function addStar(x, y) {
+    const rect = c.getBoundingClientRect();
+    const sx = x - rect.left, sy = y - rect.top;
+    constellationStars.push({ x: sx, y: sy });
+    drawConstellation();
+  }
+  c.addEventListener('click', (e) => addStar(e.clientX, e.clientY));
+  c.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    const t = e.changedTouches[0];
+    addStar(t.clientX, t.clientY);
+  });
+  loadSavedConstellation();
+}
+function drawConstellationBg() {
+  if (!cCtx) return;
+  const c = document.getElementById('constellationCanvas');
+  cCtx.fillStyle = 'rgba(5,0,15,1)';
+  cCtx.fillRect(0, 0, c.width, c.height);
+  for (let i = 0; i < 80; i++) {
+    cCtx.beginPath();
+    cCtx.arc(Math.random()*c.width, Math.random()*c.height, Math.random()*1+0.3, 0, Math.PI*2);
+    cCtx.fillStyle = `rgba(200,180,240,${Math.random()*0.4+0.1})`;
+    cCtx.fill();
+  }
+}
+function drawConstellation() {
+  const c = document.getElementById('constellationCanvas');
+  drawConstellationBg();
+  if (constellationStars.length === 0) return;
+  // Draw lines
+  cCtx.strokeStyle = 'rgba(180,128,228,0.4)';
+  cCtx.lineWidth = 1.5;
+  for (let i = 1; i < constellationStars.length; i++) {
+    cCtx.beginPath();
+    cCtx.moveTo(constellationStars[i-1].x, constellationStars[i-1].y);
+    cCtx.lineTo(constellationStars[i].x, constellationStars[i].y);
+    cCtx.stroke();
+  }
+  // Draw stars
+  constellationStars.forEach((s, i) => {
+    cCtx.beginPath();
+    cCtx.arc(s.x, s.y, 4, 0, Math.PI*2);
+    cCtx.fillStyle = i === constellationStars.length-1 ? '#e88fc5' : '#b480e4';
+    cCtx.fill();
+    cCtx.beginPath();
+    cCtx.arc(s.x, s.y, 8, 0, Math.PI*2);
+    cCtx.fillStyle = 'rgba(180,128,228,0.15)';
+    cCtx.fill();
+  });
+}
+function clearConstellation() {
+  constellationStars = [];
+  drawConstellationBg();
+  document.getElementById('constellationName').textContent = '';
+}
+function saveConstellation() {
+  if (constellationStars.length < 2) {
+    document.getElementById('constellationName').textContent = 'Draw at least 2 stars first ✨';
+    return;
+  }
+  const customName = document.getElementById('constellationInput').value.trim();
+  if (!customName) {
+    document.getElementById('constellationName').textContent = 'Give our constellation a name first 💜';
+    document.getElementById('constellationInput').focus();
+    return;
+  }
+  const fullName = '✨ "' + customName + '" — named by Mochi 🍡';
+  document.getElementById('constellationName').textContent = fullName;
+  // Save to localStorage so Dinoboy can see it too
+  localStorage.setItem('constellation_name', customName);
+  localStorage.setItem('constellation_stars', JSON.stringify(constellationStars));
+  document.getElementById('constellationInput').value = '';
+  document.getElementById('constellationName').style.animation = 'none';
+  document.getElementById('constellationName').offsetHeight;
+  document.getElementById('constellationName').style.animation = 'fadeInSlow 0.8s ease forwards';
+}
+// Load saved constellation on init
+function loadSavedConstellation() {
+  const savedName = localStorage.getItem('constellation_name');
+  const savedStars = localStorage.getItem('constellation_stars');
+  if (savedName && savedStars) {
+    try {
+      constellationStars = JSON.parse(savedStars);
+      drawConstellation();
+      document.getElementById('constellationName').textContent = '✨ "' + savedName + '" — named by Mochi 🍡';
+    } catch(e) {}
+  }
+}
+
+
+// ─── 🔥 WHEN I GET YOU ALONE (NEW!) ────────────────
+const spicyPromises = [
+  "First… I'm going to pull you close and just breathe you in. Four days without your scent. I need it back. 🤤",
+  "Then I'll run my fingers through your hair… slowly. The way that makes your eyes close and your lips part. 💆‍♀️",
+  "I'll trace my fingertips down your neck… your collarbone… watching you shiver under my touch. You know I love that. 🥵",
+  "I'll lean in close — lips barely touching your ear — and whisper exactly what I've been thinking about for four. whole. days. 🤫",
+  "Then I'll hold your face in my hands and kiss you. Not a quick one. A real one. The kind that makes your knees give out. 💋",
+  "My hands on your waist… pulling you closer until there's nothing between us. No space. No air. Just us. 🔥",
+  "I'll kiss that spot on your neck. You know the one. The one that makes you grab my shirt and pull me closer. Yeah. That one. 😏",
+  "Then your back against the wall. My forehead on yours. Both of us breathing hard. Eyes locked. Neither of us moving… yet. 👀🔥",
+  "Four days without your touch, Mochi. FOUR DAYS. I'm going to make up for every. single. second. And I'm taking my time. ⏳🔥",
+  "And after that… well… let's just say you won't be sleeping early on Sunday night. Or Monday morning. Or maybe ever again. 😈💜"
+];
+let spicyIndex = -1;
+function revealSpicy() {
+  spicyIndex++;
+  if (spicyIndex >= spicyPromises.length) spicyIndex = 0;
+  const display = document.getElementById('spicyMessage');
+  const counter = document.getElementById('spicyCounter');
+  display.classList.remove('revealing');
+  display.style.opacity = '0';
+  setTimeout(() => {
+    display.textContent = spicyPromises[spicyIndex];
+    counter.textContent = 'Promise ' + (spicyIndex + 1) + ' of ' + spicyPromises.length;
+    display.classList.add('revealing');
+    display.style.opacity = '1';
+    // Intensify the glow as messages get spicier
+    const heat = (spicyIndex + 1) / spicyPromises.length;
+    display.style.borderColor = `rgba(255,${100 - heat * 50},${100 - heat * 50},${0.1 + heat * 0.2})`;
+    display.style.background = `rgba(255,50,50,${0.03 + heat * 0.05})`;
+  }, 300);
+}
+
+// ─── 💍 GRAND FINALE (NEW!) ─────────────────────────
+function startFinale() {
+  const overlay = document.getElementById('finaleOverlay');
+  const content = document.getElementById('finaleContent');
+  content.innerHTML = '';
+  overlay.classList.add('active');
+  document.body.style.overflow = 'hidden';
+  document.getElementById('finaleClose').style.opacity = '0';
+
+  CONFIG.finaleLines.forEach((line, i) => {
+    setTimeout(() => {
+      if (line.text === 'RING') {
+        const ring = document.createElement('div');
+        ring.className = 'finale-ring';
+        ring.textContent = '💍';
+        content.appendChild(ring);
+        setTimeout(() => ring.classList.add('visible'), 100);
+        setTimeout(() => overlay.scrollTo({ top: overlay.scrollHeight, behavior: 'smooth' }), 200);
+        // Fireworks!
+        launchFireworks();
+        return;
+      }
+      if (line.text === ' ') {
+        const spacer = document.createElement('div');
+        spacer.style.height = '15px';
+        content.appendChild(spacer);
+        return;
+      }
+      const el = document.createElement('div');
+      el.className = 'finale-line' + (line.glow ? ' glow' : '');
+      el.textContent = line.text;
+      content.appendChild(el);
+      setTimeout(() => el.classList.add('visible'), 50);
+      // Auto-scroll to latest line
+      setTimeout(() => overlay.scrollTo({ top: overlay.scrollHeight, behavior: 'smooth' }), 200);
+    }, line.delay);
+  });
+
+  // Show close button after all lines
+  setTimeout(() => {
+    document.getElementById('finaleClose').style.opacity = '1';
+  }, 43000);
+}
+
+function launchFireworks() {
+  const colors = ['#b480e4', '#e88fc5', '#f5c6aa', '#f0d080', '#a0e0ff', '#ff80ab'];
+  for (let w = 0; w < 5; w++) {
+    setTimeout(() => {
+      const cx = 20 + Math.random() * 60;
+      const cy = 20 + Math.random() * 60;
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      for (let i = 0; i < 20; i++) {
+        const spark = document.createElement('div');
+        spark.className = 'finale-firework';
+        spark.style.background = color;
+        spark.style.left = cx + '%';
+        spark.style.top = cy + '%';
+        const angle = (i / 20) * Math.PI * 2;
+        const dist = 60 + Math.random() * 100;
+        spark.style.setProperty('--fx', Math.cos(angle) * dist + 'px');
+        spark.style.setProperty('--fy', Math.sin(angle) * dist + 'px');
+        spark.style.boxShadow = `0 0 6px ${color}`;
+        document.getElementById('finaleOverlay').appendChild(spark);
+        setTimeout(() => spark.remove(), 1200);
+      }
+    }, w * 600);
+  }
+}
+
+function closeFinale() {
+  document.getElementById('finaleOverlay').classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+// ─── MUSIC ───────────────────────────────────────────
+let musicPlaying = false, bgMusic = null;
+document.getElementById('musicToggle').addEventListener('click', () => {
+  if (!bgMusic) {
+    bgMusic = new Audio('song.mp3');
+    bgMusic.loop = true; bgMusic.volume = 0.3;
+    bgMusic.play().then(() => {
+      musicPlaying = true;
+      document.getElementById('musicToggle').textContent = '🎶';
+      document.getElementById('musicToggle').classList.add('playing');
+    }).catch(() => {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        function createPad(freq, vol) {
+          const osc = ctx.createOscillator(); const gain = ctx.createGain();
+          const filter = ctx.createBiquadFilter();
+          osc.type = 'sine'; osc.frequency.value = freq;
+          filter.type = 'lowpass'; filter.frequency.value = 800;
+          gain.gain.value = vol;
+          osc.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
+          osc.start(); return { osc, gain };
+        }
+        bgMusic = { ctx, pads: [createPad(220,0.03), createPad(277,0.02), createPad(330,0.02), createPad(440,0.015)], isFallback: true };
+        musicPlaying = true;
+        document.getElementById('musicToggle').textContent = '🎶';
+        document.getElementById('musicToggle').classList.add('playing');
+      } catch(e) {}
+    });
+  } else if (musicPlaying) {
+    if (bgMusic.isFallback) bgMusic.pads.forEach(p => p.gain.gain.value = 0);
+    else bgMusic.pause();
+    musicPlaying = false;
+    document.getElementById('musicToggle').textContent = '🎵';
+    document.getElementById('musicToggle').classList.remove('playing');
+  } else {
+    if (bgMusic.isFallback) bgMusic.pads.forEach((p, i) => { p.gain.gain.value = [0.03, 0.02, 0.02, 0.015][i]; });
+    else bgMusic.play();
+    musicPlaying = true;
+    document.getElementById('musicToggle').textContent = '🎶';
+    document.getElementById('musicToggle').classList.add('playing');
+  }
+});
+
+// ─── EASTER EGG ──────────────────────────────────────
+document.querySelectorAll('.section-title').forEach(title => {
+  title.addEventListener('click', () => {
+    let clicks = parseInt(title.dataset.clicks || 0) + 1;
+    title.dataset.clicks = clicks;
+    if (clicks >= 5) {
+      document.getElementById('easterEgg').classList.add('show');
+      title.dataset.clicks = 0;
+      setTimeout(() => {
+        document.getElementById('easterEgg').addEventListener('click', () => {
+          document.getElementById('easterEgg').classList.remove('show');
+        }, { once: true });
+      }, 500);
+    }
+  });
+});
+</script>
+</body>
+</html>
